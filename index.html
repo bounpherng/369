@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="lo">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ຈັບໄພໃນວົງເຫຼົ້າ 369 ເກມ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;700&display=swap" rel="stylesheet">
+  
+ <link rel="manifest" href="./manifest.json" />
+ <link rel="icon" href="/icon-192.png" />
+  <style>
+    :root {
+      --bg1: #071027;
+      --bg2: #04101a;
+      --card: #fff;
+      --muted: rgba(230, 238, 248, 0.8);
+      --accent1: #8a2be2; /*-- BlueViolet --*/
+      --accent2: #00ffff; /*-- Aqua --*/
+      --gold: #ffd700;
+      --card-w: 70vw; /* ຄ່າເລີ່ມຕົ້ນສຳລັບໂທລະສັບ */
+      --card-h: calc(var(--card-w) * 1.5); /* ຮັກສາສັດສ່ວນ 2:3 */
+      --deck-w: calc(var(--card-w) + 20px);
+      --deck-h: calc(var(--card-h) + 20px);
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: 'Noto Sans Lao', sans-serif;
+      background: var(--bg2);
+      color: #e6eef8;
+      font-size: clamp(16px, 2vw, 18px); /* ປັບຂະໜາດຟອນຕິ້ງໃຫ້ເໝາະກັບຄອມພິວເຕີ້ */
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    .wrap {
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem;
+      box-sizing: border-box;
+      background: radial-gradient(circle at 10% 20%, rgba(138, 43, 226, 0.15), transparent 40%),
+                  radial-gradient(circle at 90% 80%, rgba(0, 255, 255, 0.1), transparent 40%),
+                  linear-gradient(180deg, var(--bg1), var(--bg2));
+    }
+
+    .board {
+      width: 90vw;
+      max-width: 600px; /* ຈຳກັດຄວາມກວ້າງສູງສຸດສຳລັບຄອຮພິວເຕີ້ */
+      margin: 0 auto;
+      background: rgba(0,0,0,0.1);
+      border-radius: 1rem;
+      padding: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: center;
+      box-sizing: border-box;
+    }
+
+    .deck-area {
+      width: var(--deck-w);
+      height: var(--deck-h);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      perspective: 1000px;
+      transition: all 0.3s;
+    }
+
+    .deck-area.disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .card-size {
+      width: var(--card-w);
+      height: var(--card-h);
+      border-radius: clamp(8px, 1.5vw, 12px);
+      position: absolute;
+      backface-visibility: hidden;
+      transform-style: preserve-3d;
+      transition: transform 420ms cubic-bezier(.2, .9, .3, 1), opacity 300ms;
+    }
+
+    .card-back {
+      background: linear-gradient(180deg, #071224, #0b2133);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02), 0 10px 30px rgba(2,6,23,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent2);
+      font-size: clamp(2rem, 5vw, 3rem);
+    }
+
+    .flipper {
+      position: absolute;
+      width: var(--deck-w);
+      height: var(--deck-h);
+      transform-style: preserve-3d;
+      transition: transform 0.6s cubic-bezier(.4, 0, .2, 1);
+      z-index: 10;
+    }
+
+    .flipper.is-flipped { transform: rotateY(180deg); }
+
+    .flipper .single, .fan .single {
+      width: 100%; height: 100%; border-radius: clamp(8px, 1.5vw, 12px);
+      position: absolute;
+      backface-visibility: hidden; background: var(--card); display: flex;
+      flex-direction: column; padding: clamp(6px, 1vw, 8px);
+      box-shadow: 0 0.875rem 1.875rem rgba(2, 6, 23, 0.45);
+    }
+    
+    .flipper .card-back-flip {
+        width: 100%; height: 100%; border-radius: clamp(8px, 1.5vw, 12px);
+        position: absolute;
+        backface-visibility: hidden; background: linear-gradient(180deg, #071224, #0b2133);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.02), 0 10px 30px rgba(2,6,23,0.6);
+        display: flex; align-items: center; justify-content: center;
+        color: var(--accent2); font-size: clamp(2.5rem, 6vw, 3.5rem);
+    }
+
+    .flipper .card-front-flip { transform: rotateY(180deg); }
+    .fan { position: absolute; inset: clamp(10px, 1.5vw, 15px); display: flex; align-items: center; justify-content: center; pointer-events: none; }
+    .single .suitBig { flex: 1; display: grid; align-items: center; justify-items: center; width: 100%; height: 100%; }
+    .suitBig img { width: 90%; height: 90%; object-fit: contain; }
+    .game-info { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; width: 100%; text-align: center; }
+
+    .status {
+      color: var(--muted); font-size: clamp(0.9rem, 1.5vw, 1.1rem); line-height: 1.4; min-height: 2.8em; 
+    }
+    .status .card-code {
+        color: white; font-weight: bold; background-color: rgba(255,255,255,0.1);
+        padding: 0.1em 0.4em; border-radius: 4px;
+    }
+    .status .instruction { font-size: clamp(0.8rem, 1.2vw, 0.9rem); opacity: 0.7; }
+
+    .btn {
+      appearance: none; border: 0; padding: clamp(0.6rem, 1vw, 0.8rem) clamp(1.2rem, 2vw, 1.5rem);
+      border-radius: 50px;
+      background: linear-gradient(90deg, var(--accent1), var(--accent2));
+      color: white; font-weight: 700; cursor: pointer; transition: all 0.3s;
+      font-family: 'Noto Sans Lao', sans-serif; box-shadow: 0 5px 15px rgba(0, 255, 255, 0.2);
+      font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+    }
+    .btn:hover { transform: scale(1.05); box-shadow: 0 8px 25px rgba(138, 43, 226, 0.4); }
+    
+    #preload { display: none; }
+    
+    /*-- Popup ລາງວັນອະລັງການ --*/
+    .prize-popup {
+      position: fixed; top: 50%; left: 50%;
+      width: min(85vw, 450px); /* ປັບຂະໜາດ popup ໃຫ້ເໝາະກັບຄອມພິວເຕີ້ */
+      transform: translate(-50%, -50%) scale(0.5);
+      background: radial-gradient(circle, #1a0b2e, #071027);
+      border-radius: 20px;
+      border: 2px solid transparent;
+      box-shadow: 0 0 80px rgba(138, 43, 226, 0.7);
+      z-index: 1000; text-align: center; color: #fff;
+      padding: clamp(1.5rem, 2vw, 2rem) 1rem;
+      animation: prize-pop-in 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+                 prize-border-glow 2s infinite alternate;
+    }
+    .prize-popup.ace {
+        --accent1: #ffd700; --accent2: #ff8c00;
+        box-shadow: 0 0 100px rgba(255, 215, 0, 0.8);
+    }
+    @keyframes prize-pop-in { to { transform: translate(-50%, -50%) scale(1); } }
+    @keyframes prize-pop-out { to { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } }
+    @keyframes prize-border-glow {
+      from { border-color: var(--accent2); }
+      to { border-color: var(--accent1); }
+    }
+    .prize-popup .icon {
+      font-size: clamp(4rem, 5vw, 5rem);
+      animation: prize-icon-float 3s ease-in-out infinite;
+      text-shadow: 0 0 20px var(--accent2);
+    }
+    @keyframes prize-icon-float {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-15px) scale(1.1); }
+    }
+    .prize-popup .message {
+      font-size: clamp(1.2rem, 2vw, 1.5rem); font-weight: 700;
+      margin: 1rem 0 0.5rem;
+      text-shadow: 0 0 10px var(--accent1), 0 0 20px var(--accent1);
+    }
+    .prize-popup .sub-message {
+        font-size: clamp(0.9rem, 1.5vw, 1rem);
+        color: var(--muted);
+    }
+
+    /*-- ເອັບເຟັກ Particle --*/
+    .particle-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0;
+      animation: particle-rise 3s ease-out forwards;
+    }
+    @keyframes particle-rise {
+      0% { transform: translateY(0) scale(0.5); opacity: 1; }
+      100% { transform: translateY(-100vh) scale(1); opacity: 0; }
+    }
+
+    /*-- ສ່ວນທີ່ເຫຼືອ --*/
+    .shuffle-effect{position:absolute;inset:0;pointer-events:none;z-index:5;display:flex;align-items:center;justify-content:center;perspective:1000px}
+    .shuffle-card{width:var(--card-w);height:var(--card-h);position:absolute;border-radius:clamp(8px, 1.5vw, 12px);background:linear-gradient(180deg,#071224,#0b2133);box-shadow:0 10px 30px rgba(2,6,23,0.6);transform-style:preserve-3d;backface-visibility:hidden;animation:shuffleAnim 1.5s ease-in-out}
+    @keyframes shuffleAnim { 0% {transform:rotateY(0) translateX(0) rotateZ(0);} 50% {transform:rotateY(180deg) translateX(calc(var(--rand-x)*1px)) rotateZ(calc(var(--rand-rot)*1deg));opacity:0.8} 100% {transform:rotateY(360deg) translateX(0) rotateZ(0);opacity:1} }
+    .sparkle {position: absolute; inset: 0; pointer-events: none; opacity: 0; animation: sparkle 0.8s ease-out;}
+    @keyframes sparkle { 0% {opacity: 0; transform: scale(0.5) rotate(0deg);} 50% {opacity: 1; transform: scale(1.2) rotate(180deg);} 100% {opacity: 0; transform: scale(0.8) rotate(360deg);} }
+
+    /* ປັບສຳລັບໜ້າຈໍໂທລະສັບ */
+    @media (max-width: 480px) {
+      :root { 
+        --card-w: 80vw;
+        --card-h: calc(var(--card-w) * 1.5);
+        --deck-w: calc(var(--card-w) + 15px);
+        --deck-h: calc(var(--card-h) + 15px);
+      }
+      .board { padding: 0.5rem; gap: 0.8rem; }
+      .status { font-size: clamp(0.85rem, 2.8vw, 0.95rem); }
+      .btn { padding: clamp(0.5rem, 1.8vw, 0.7rem) clamp(1rem, 2.5vw, 1.3rem); }
+    }
+
+    /* ປັບສຳລັບຄອມພິວເຕີ້ (ໜ້າຈໍໃຫຍ່ກວ່າ 480px) */
+    @media (min-width: 481px) {
+      :root { 
+        --card-w: 200px; /* ກຳນົດຂະໜາດຄົງທີ່ສຳລັບຄອມພິວເຕີ້ */
+        --card-h: 300px;
+        --deck-w: calc(var(--card-w) + 20px);
+        --deck-h: calc(var(--card-h) + 20px);
+      }
+      .board { 
+        max-width: 500px; /* ຈຳກັດຄວາມກວ້າງໃຫ້ເໝາະສົມກັບຄອຮພິວເຕີ້ */
+        padding: 1.5rem;
+        gap: 1.5rem;
+      }
+      .status { font-size: clamp(1rem, 1.2vw, 1.2rem); }
+      .btn { 
+        padding: clamp(0.8rem, 1vw, 1rem) clamp(1.5rem, 2vw, 2rem); 
+        font-size: clamp(1rem, 1.2vw, 1.2rem);
+      }
+      .card-back { font-size: 2.5rem; }
+      .flipper .card-back-flip { font-size: 3rem; }
+      .single .suitBig img { width: 85%; height: 85%; } /* ປັບຂະໜາດຮູບໄພໃຫ້ເໝາະສົມ */
+    }
+  </style>
+</head>
+<body>
+  <div id="preload"></div>
+  <div class="wrap">
+    <div class="board" role="application">
+      <div class="deck-area" id="deckArea" tabindex="0" aria-label="ແຕະ ຫຼື Space ເພື່ອເປີດໄພ">
+        <div id="deckBack" class="card-size card-back">🂠</div>
+        <div class="fan" id="fan"></div>
+      </div>
+      <div class="game-info">
+        <div class="status" id="status"></div>
+        <button id="shuffleBtn" class="btn">ສັບໄພໃໝ່</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+    const suits = [{ sym: '♠', color: 'black', code: 'S' }, { sym: '♥', color: 'red', code: 'H' }, { sym: '♦', color: 'red', 'code': 'D' }, { sym: '♣', color: 'black', code: 'C' }];
+    const emojis = ['🏆', '✨', '🌟', '👑', '💎', '🎉', '🍾'];
+    
+    let deck = [], lastDrawnCard = null, isDrawing = false, isAlertOpen = false, isShuffling = false;
+
+    const statusEl = document.getElementById('status');
+    const deckBack = document.getElementById('deckBack');
+    const fan = document.getElementById('fan');
+    const deckArea = document.getElementById('deckArea');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+
+    function buildDeck() {
+      const newDeck = [];
+      const preload = document.getElementById('preload');
+      preload.innerHTML = '';
+      for (const s of suits) {
+        for (const r of ranks) {
+          const imageCode = (r === '10' ? '0' : r) + s.code;
+          const imageUrl = `https://deckofcardsapi.com/static/img/${imageCode}.png`;
+          newDeck.push({ rank: r, suit: s.sym, color: s.color, code: `${r}${s.sym}`, image: imageUrl });
+          const img = new Image(); img.src = imageUrl; preload.appendChild(img);
+        }
+      }
+      return newDeck;
+    }
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function updateStatus() {
+      let statusText = '';
+      if (isShuffling) {
+        statusText = 'ກຳລັງສັບໄພ...';
+      } else if (deck.length === 0 && !lastDrawnCard) {
+        statusText = 'ໄພໝົດແລ້ວ! ກະລຸນາສັບໃໝ່.';
+      } else {
+        const remainingText = `ຍັງເຫຼືອ ${deck.length} ໃບ`;
+        const drawnText = lastDrawnCard ? ` | ເປີດໄພ: <span class="card-code">${lastDrawnCard.code}</span>` : '';
+        const instructionText = `<br><span class="instruction">(ແຕະກອງໄພເພື່ອເປີດ)</span>`;
+        statusText = remainingText + drawnText + instructionText;
+      }
+      statusEl.innerHTML = statusText;
+    }
+
+    function updateControls() {
+        const isDisabled = isAlertOpen || isDrawing || isShuffling;
+        deckArea.classList.toggle('disabled', isDisabled || deck.length === 0);
+        shuffleBtn.disabled = isDisabled;
+        deckBack.style.opacity = deck.length === 0 ? 0.25 : 1;
+    }
+
+    function createCardElement(card) {
+      const el = document.createElement('div');
+      el.className = 'single';
+      const cornerColor = card.color === 'red' ? 'crimson' : '#07122b';
+      el.innerHTML = `
+        <div style="position:relative; display:flex; flex-direction:column; height: 100%;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; font-weight:700; font-size:clamp(1.2rem, 1.5vw, 1.5rem); color:${cornerColor}; padding: 0 0.25rem;"><span>${card.rank}</span><span>${card.suit}</span></div>
+            <div class="suitBig"><img src="${card.image}" alt="${card.code}" draggable="false" loading="lazy"></div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; font-weight:700; font-size:clamp(1.2rem, 1.5vw, 1.5rem); color:${cornerColor}; padding: 0 0.25rem; transform: rotate(180deg);"><span>${card.rank}</span><span>${card.suit}</span></div>
+            <div class="sparkle"></div>
+        </div>`;
+      return el;
+    }
+    
+    function doShuffle() {
+        if (isShuffling) return;
+        isShuffling = true; lastDrawnCard = null; fan.innerHTML = '';
+        updateStatus(); updateControls();
+        showShuffleAnimation(() => {
+            deck = shuffle(buildDeck());
+            isShuffling = false; updateStatus(); updateControls();
+        });
+    }
+
+    function drawOne() {
+      if (isDrawing || isAlertOpen || isShuffling || deck.length === 0) return;
+      isDrawing = true; updateControls();
+      const card = deck.shift();
+      lastDrawnCard = card; updateStatus(); fan.innerHTML = '';
+
+      const flipper = document.createElement('div');
+      flipper.className = 'flipper';
+      const cardBackFlip = document.createElement('div');
+      cardBackFlip.className = 'card-back-flip'; cardBackFlip.innerHTML = '🂠';
+      const cardFrontFlip = createCardElement(card);
+      cardFrontFlip.classList.add('card-front-flip');
+      flipper.appendChild(cardBackFlip); flipper.appendChild(cardFrontFlip);
+      deckArea.appendChild(flipper);
+
+      requestAnimationFrame(() => {
+        flipper.classList.add('is-flipped');
+        cardFrontFlip.querySelector('.sparkle').style.opacity = 1;
+      });
+
+      setTimeout(() => {
+          const finalCard = createCardElement(card);
+          fan.appendChild(finalCard);
+          flipper.remove();
+          isDrawing = false; updateControls();
+          if (deck.length === 0) updateStatus();
+          if (['3', '6', '9', 'A'].includes(card.rank)) showCelebrationAlert(card.rank);
+      }, 600);
+    }
+
+    function triggerUltimateCelebration() {
+        const container = document.createElement('div');
+        container.className = 'particle-container';
+        document.body.appendChild(container);
+
+        const particleCount = 100;
+        const colors = ['#ffd700', '#ff8c00', '#8a2be2', '#00ffff', '#ffffff'];
+
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            const size = Math.random() * 10 + 5;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.background = `radial-gradient(circle, ${colors[Math.floor(Math.random() * colors.length)]} 0%, rgba(0,0,0,0) 70%)`;
+            particle.style.left = `${Math.random() * 100}vw`;
+            particle.style.bottom = `${Math.random() * 50 - 25}vh`;
+            particle.style.animationDelay = `${Math.random() * 2}s`;
+            particle.style.animationDuration = `${3 + Math.random() * 3}s`;
+            container.appendChild(particle);
+        }
+
+        setTimeout(() => container.remove(), 6000);
+    }
+
+    function showShuffleAnimation(callback) {
+      const shuffleContainer = document.createElement('div');
+      shuffleContainer.className = 'shuffle-effect';
+      deckArea.appendChild(shuffleContainer);
+      for (let i = 0; i < 8; i++) {
+        const card = document.createElement('div');
+        card.className = 'shuffle-card';
+        card.style.setProperty('--rand-x', Math.random() * 100 - 50);
+        card.style.setProperty('--rand-rot', Math.random() * 60 - 30);
+        card.style.animationDelay = `${i * 0.1}s`;
+        shuffleContainer.appendChild(card);
+      }
+      setTimeout(() => {
+        shuffleContainer.remove();
+        if (callback) callback();
+      }, 1500);
+    }
+
+    function showCelebrationAlert(rank) {
+      isAlertOpen = true;
+      updateControls();
+      triggerUltimateCelebration();
+
+      const alertContainer = document.createElement('div');
+      alertContainer.className = `prize-popup ${rank === 'A' ? 'ace' : ''}`;
+      const emoji = rank === 'A' ? '👑' : '🎉';
+      const message = rank === 'A' ? 'ລາງວັນໃຫຍ່!' : 'ຜູ້ໂຊກດີ!';
+      const subMessage = rank === 'A' ? 'ສັ່ງໝູ່ດື່ມໄດ້ເລີຍ!' : 'ດື່ມ 1 ຈອກ!';
+      
+      alertContainer.innerHTML = `<div class="icon">${emoji}</div><div class="message">${message}</div><div class="sub-message">${subMessage}</div>`;
+      document.body.appendChild(alertContainer);
+      
+      const close = () => {
+        if (!alertContainer.parentNode) return;
+        alertContainer.style.animation = 'prize-pop-out 0.5s ease-in forwards';
+        setTimeout(() => {
+          alertContainer.remove();
+          isAlertOpen = false;
+          updateControls();
+        }, 500);
+      };
+
+      setTimeout(close, 3000);
+    }
+
+    // --- Event Listeners ---
+    deckArea.addEventListener('click', drawOne);
+    shuffleBtn.addEventListener('click', doShuffle);
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' || e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        drawOne();
+      }
+      if (e.key === 'r' || e.key === 'R') doShuffle();
+    });
+
+    // --- PWA: ລົງທະບຽນ service worker ---
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then((registration) => console.log('Service Worker registered!'))
+          .catch((err) => console.error('Service Worker registration failed:', err));
+      });
+    }
+
+    // --- ເລີ່ມຕົ້ນເກມ ---
+    doShuffle();
+  </script>
+</body>
+</html>
